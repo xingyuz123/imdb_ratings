@@ -1,5 +1,5 @@
 from imdb_ratings.movie_database import get_title_df
-from imdb_ratings.scrape_reviews import create_requests_session, extract_reviews
+from imdb_ratings.scrape_reviews import create_requests_session, get_reviews_from_title_code
 import polars as pl
 from supabase import Client, create_client
 import time
@@ -7,7 +7,7 @@ from enum import Enum
 import os
 from imdb_ratings import logger
 from dotenv import load_dotenv
-from datetime import date, timedelta, datetime
+from typing import Any
 
 load_dotenv()
 
@@ -28,15 +28,14 @@ def upsert_rows_into_table(table_name: TableName, df: pl.DataFrame, supabase_cli
     """
     This function inserts the dataframe into the database in batches.
     """
-    list_of_dicts: list[dict] = df.to_dicts()
+    list_of_dicts: list[dict[str, Any]] = df.to_dicts()
     total_records: int = len(list_of_dicts)
 
     for i in range(0, total_records, batch_size):
-        batch_dicts = list_of_dicts[i:i+batch_size]
+        batch_dicts: list[dict[str, Any]] = list_of_dicts[i:i+batch_size]
         try:
             supabase_client.table(table_name.value).upsert(batch_dicts).execute()
-            logger.info(f"{table_name.value}: Inserted batch {i//batch_size + 1} of {(total_records + batch_size - 1)//batch_size}")
-            time.sleep(0.1)
+            time.sleep(1)
         except Exception as e:
             logger.error(f"{table_name.value}: Error inserting batch {i//batch_size + 1}: {str(e)}")
 
@@ -52,16 +51,30 @@ def update_title_table(supabase_client: Client | None = None) -> None:
     upsert_rows_into_table(TableName.TITLES, df, supabase_client)
     logger.info("Data update completed successfully")
 
-def extract_title_ids(supabase_client: Client) -> set[int]:
-    return set([id_dict["id"] for id_dict in supabase_client.table("titles").select("id").execute().data])
+def extract_title_ids(table_name: TableName, supabase_client: Client) -> set[int]:
+    id_name: str = "id" if table_name == TableName.TITLES else "title_id"
+    table_name_str: str = "distinct_title_id_from_review" if table_name == TableName.REVIEWS else "distinct_title_id"
+    offset: int = 0
+    title_ids: set[int] = set()
+    
+    while True:
+        new_ids = [
+            int(id_dict[id_name])
+            for id_dict in supabase_client.table(table_name_str)
+            .select(id_name)
+            .offset(offset)
+            .limit(1000)
+            .execute()
+            .data
+        ]
+        title_ids.update(new_ids)
+        offset += 1000
+        if len(new_ids) < 1000:
+            break
 
-def extract_max_review_id(supabase_client: Client) -> int:
-    review_ids = [review_dict["review_id"] for review_dict in supabase_client.table("reviews").select("review_id").execute().data]
-    if not review_ids:
-        return 0
-    return max(review_ids)
+    return title_ids
 
-def update_reviews_table(supabase_client: Client | None = None, batch_size: int = 100) -> None:
+def update_reviews_table(supabase_client: Client | None = None, titles_to_update: list[int] | None = None) -> None:
     """
     Updates reviews table
     """
@@ -69,33 +82,19 @@ def update_reviews_table(supabase_client: Client | None = None, batch_size: int 
         supabase_client = create_supabase_client()
     
     requests_session = create_requests_session()
-    review_date_threshold = date.today() - timedelta(days=30)
-    
-    start_id = extract_max_review_id(supabase_client) + 1
-    logger.info(f"Starting from review id {start_id}")
+
+    if titles_to_update is None:
+        all_title_ids = extract_title_ids(TableName.TITLES, supabase_client)
+        processed_title_ids = extract_title_ids(TableName.REVIEWS, supabase_client)
+        titles_to_update = sorted(all_title_ids - processed_title_ids)
 
     try:
-        while True:
-            reviews = extract_reviews(start_id=start_id, batch_size=batch_size, requests_session=requests_session)
-            start_id += batch_size
+        for i, title_id in enumerate(titles_to_update):
+            title_code = f"tt{title_id:07d}"
+            logger.info(f"Extracting reviews for {i+1}/{len(titles_to_update)} titles: {title_code}")
+            review_df = get_reviews_from_title_code(title_code, requests_session)
+            upsert_rows_into_table(TableName.REVIEWS, review_df, supabase_client)
 
-            if not reviews:
-                continue
-
-            latest_review_date = max([datetime.strptime(review.date, "%Y-%m-%d").date() for review in reviews])
-            logger.info(f"Latest review date: {latest_review_date}")
-            if latest_review_date > review_date_threshold:
-                logger.info(f"Reached reviews newer than threshold date {review_date_threshold}")
-                break
-            filtered_reviews = [
-                review.model_dump() 
-                for review in reviews 
-                if review.rating is not None
-            ]
-            if filtered_reviews:
-                logger.info(f"Found {len(filtered_reviews)} relevant reviews")
-                df = pl.DataFrame(filtered_reviews)
-                upsert_rows_into_table(TableName.REVIEWS, df, supabase_client)
     except Exception as e:
         logger.error(f"Error updating reviews: {str(e)}")
         raise

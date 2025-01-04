@@ -2,144 +2,123 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
-from bs4 import BeautifulSoup
-from datetime import datetime, date
 from pydantic import BaseModel
 from imdb_ratings import logger
+import polars as pl
+from typing import TypedDict, Any
 import time
-import random
 
 class ReviewData(BaseModel):
     review_id: int
     title_id: int
-    date: str | None
     rating: int | None
     num_helpful: int
     num_unhelpful: int
 
-def get_title_code(soup: BeautifulSoup) -> int:
-    """Returns the title id for the given review page"""
-    return int(soup.find("div", class_="lister-item-header").find("a").get("href").split("tt")[1].split("/")[0])
+# Define the structure of the GraphQL response
+class ReviewPageInfo(TypedDict):
+    hasNextPage: bool
+    endCursor: str
 
-def get_rating(soup: BeautifulSoup) -> int | None:
-    """Returns the rating for the given review page"""
-    rating_span = soup.find("span", class_="rating-other-user-rating")
-    if rating_span is None:
-        return None
-    return int(rating_span.text.strip().split("/")[0])
+class ReviewHelpfulness(TypedDict):
+    upVotes: int
+    downVotes: int
 
-def get_review_date(soup: BeautifulSoup) -> str | None:
-    """Returns the date of the review"""
-    review_date_span = soup.find("span", class_ = "review-date")
-    if review_date_span is None:
-        return None
-    return datetime.strptime(review_date_span.text.strip(), "%d %B %Y").date().strftime("%Y-%m-%d")
+class ReviewNode(TypedDict):
+    id: str
+    authorRating: int | None
+    helpfulness: ReviewHelpfulness
 
-def get_num_helpful_unhelpful(soup: BeautifulSoup) -> tuple[int, int]:
-    """Returns the number of votes for review indicating helpfulness"""
+class ReviewEdge(TypedDict):
+    node: ReviewNode
 
-    try:
-        helpful_div = soup.find("div", class_="actions text-muted")
-        if not helpful_div:
-            return 0, 0
-        helpful_div_parts = helpful_div.text.strip().split()
-        if len(helpful_div_parts) < 4:
-            return 0, 0
-        try:
-            num_helpful = int(helpful_div_parts[0])
-            num_unhelpful = int(helpful_div_parts[3]) - num_helpful
-            if num_helpful < 0 or num_unhelpful < 0:
-                return 0, 0
-            return num_helpful, num_unhelpful
-        except (ValueError, IndexError):
-            return 0, 0
-    except Exception as e:
-        logger.error(f"Error getting number of helpful and unhelpful votes: {e}")
-        return 0, 0
+class ReviewsData(TypedDict):
+    edges: list[ReviewEdge]
+    pageInfo: ReviewPageInfo
 
 def create_requests_session() -> requests.Session:
     """Creates a requests session with retry logic and timeouts"""
     session = requests.Session()
     
-    # Configure retry strategy
     retries = Retry(
-        total=3,  # Number of total retries
+        total=3,
         backoff_factor=1,  # Each retry will wait {backoff_factor * (2 ** (retry - 1))} seconds
         status_forcelist=[500, 502, 503, 504]  # HTTP status codes to retry on
     )
     
-    # Mount the retry adapter to both HTTP and HTTPS requests
     adapter = HTTPAdapter(max_retries=retries)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     
     return session
 
-def extract_review_data(review_id: int, session: requests.Session | None = None) -> ReviewData | None:
-    """Extracts review data from the given review id"""
-    url = f"https://www.imdb.com/review/rw{review_id:08d}"
+def get_json_reviews(cursor: str, title_code: str, session: requests.Session) -> ReviewsData | None:
+    url = "https://caching.graphql.imdb.com/"
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+        "accept": "application/graphql+json, application/json",
+        "accept-language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+        "content-type": "application/json",
+        "cookie": "session-id=143-2228010-5905528; session-id-time=2082787201l; ubid-main=133-7651439-3657636; ad-oo=0; uu=eyJpZCI6InV1ZmRhMmQ2YzI4ZjdkNDE4OTlhNWUiLCJwcmVmZXJlbmNlcyI6eyJmaW5kX2luY2x1ZGVfYWR1bHQiOmZhbHNlfX0=; ci=e30; session-token=WQDRWHnhpc7sMaaAye5CgjVKZZ0uIyW6PRPnqEXghsJKDSHKKVurY9I/3DFlWSxGmlch5wS/O8M+/jHtfsmlxIfbscvVRwdCJP2d2RY3U2JRrsWI05VR2XETdbN9AIX6wMgp95eoAlDsaU9MLsXpdgjOFLIP3oOnx7b2nTd0W1/SCIBbG8bAIQEt5uyGL8YSIZgWZJ+YC0O7UdGelevrRLrsNu/XmteGDULwbYGR9DAEglqPeIuQ30vc4N1l3nyJj8zJ+J5hVUMmeJgcxxRtNtESF7kPUENLXmFnQCpTHUK4SsYx++Rg52Zwkinarw/BwmE3vzsyo73IJJdOiKNyE+fv/mXq6/Cq",
+        "origin": "https://www.imdb.com",
+        "priority": "u=1, i",
+        "referer": "https://www.imdb.com/",
+        "sec-ch-ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"macOS"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "x-amzn-sessionid": "143-2228010-5905528",
+        "x-imdb-client-name": "imdb-web-next-localized",
+        "x-imdb-client-rid": "T2VXW4Z3H4Q856A770FW",
+        "x-imdb-user-country": "US",
+        "x-imdb-user-language": "en-US",
+        "x-imdb-weblab-treatment-overrides": '{"IMDB_SDUI_FAQS_989503":"T1"}'
+    }
+    querystring = {
+        "operationName": "TitleReviewsRefine",
+        "variables": f"{{\"after\":\"{cursor}\",\"const\":\"{title_code}\",\"filter\":{{}},\"first\":50,\"locale\":\"en-US\",\"sort\":{{\"by\":\"HELPFULNESS_SCORE\",\"order\":\"DESC\"}}}}",
+        "extensions": "{\"persistedQuery\":{\"sha256Hash\":\"89aff4cd7503e060ff1dd5aba91885d8bac0f7a21aa1e1f781848a786a5bdc19\",\"version\":1}}"
     }
 
-    should_close_session = False
-    if session is None:
-        session = create_requests_session()
-        should_close_session = True
-    
+    response = session.request("GET", url, headers=headers, params=querystring, timeout=10)
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+    except HTTPError as e:
+        logger.error(f"Error getting json reviews: {e}")
+        raise e
+    if "data" not in response.json():
+        return None
+    return response.json()["data"]["title"]["reviews"]
 
-        try:
-            response.raise_for_status()
-        except HTTPError as e:
-            if response.status_code == 404:
-                return None
-            logger.error(f"Error extracting review data: {e}")
-            raise e
-
-        parser = BeautifulSoup(response.content, 'html.parser')
-        title_id = get_title_code(parser)
-        rating = get_rating(parser)
-        review_date = get_review_date(parser)
-        num_helpful, num_unhelpful = get_num_helpful_unhelpful(parser)
-
-        return ReviewData(
-            review_id=review_id,
-            title_id=title_id,
-            date=review_date,
-            rating=rating,
-            num_helpful=num_helpful,
-            num_unhelpful=num_unhelpful
+def extract_reviews_from_json(response_dict: ReviewsData, title_code: str) -> list[ReviewData]:
+    reviews: list[ReviewData] = []
+    for edge in response_dict["edges"]:
+        node = edge["node"]
+        reviews.append(
+            ReviewData(
+                review_id=int(node["id"][2:]),
+                title_id=int(title_code[2:]),
+                rating=node["authorRating"],
+                num_helpful=node["helpfulness"]["upVotes"],
+                num_unhelpful=node["helpfulness"]["downVotes"]
+            )
         )
-    finally:
-        if should_close_session:
-            session.close()
+    return reviews
 
-def extract_reviews(start_id: int, batch_size: int = 1000, requests_session: requests.Session | None = None) -> list[ReviewData]:
-    """Extracts review data starting from start_id until we get batch_size reviews"""
-
-    logger.info(f"Extracting reviews from {start_id} to {start_id + batch_size - 1}")
-
+def get_reviews_from_title_code(title_code: str, requests_session: requests.Session) -> pl.DataFrame:
+    """Extracts review data from the given review id"""
+    has_next_page: bool = True
+    cursor: str = ""
     reviews: list[ReviewData] = []
 
-    should_close_session = False
-    if requests_session is None:
-        requests_session = create_requests_session()
-        should_close_session = True
-    try:
-        for i in range(start_id, start_id + batch_size):
-            review = extract_review_data(i, requests_session)
-            if review is None:
-                logger.info(f"Review {i} not found")
-            else:
-                reviews.append(review)
-                logger.info(f"Extracted review {i}")
-            # time.sleep(random.uniform(0.1, 1))
-    finally:
-        if should_close_session:
-            requests_session.close()
-
-    return reviews
+    while has_next_page:
+        response_dict = get_json_reviews(cursor=cursor, title_code=title_code, session=requests_session)
+        if response_dict is None:
+            break
+        has_next_page = bool(response_dict["pageInfo"]["hasNextPage"])
+        cursor = response_dict["pageInfo"]["endCursor"]
+        reviews.extend(extract_reviews_from_json(response_dict, title_code))
+        # time.sleep(1)
+    return pl.DataFrame([review.model_dump() for review in reviews if review.rating is not None])

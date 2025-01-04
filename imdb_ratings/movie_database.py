@@ -2,15 +2,23 @@ import polars as pl
 from imdb_ratings import logger
 
 
-def get_title_df():
+def get_title_df() -> pl.DataFrame:
     """
-    Fetches and filters IMDB title data.
-    Returns a dataframe with show/movie information, excluding adult titles and titles with null startYear or runtimeMinutes.
+    Returns a DataFrame containing title information.
+    
+    Returns:
+        pl.DataFrame: A DataFrame with columns:
+            - id (Int64): The IMDB title ID
+            - isMovie (Boolean): True if the title is a movie, False if TV series
+            - primaryTitle (String): The title's name
+            - startYear (Int16): Year the title was released
+            - endYear (Int16 | None): Year the series ended (None for movies)
+            - imdb_rating (Float64): The IMDB rating
     """
 
     logger.info("Fetching basic title data")
 
-    basics_df = pl.read_csv(
+    basics_df: pl.DataFrame = pl.read_csv(
         "https://datasets.imdbws.com/title.basics.tsv.gz",
         separator="\t",
         quote_char=None,
@@ -40,7 +48,7 @@ def get_title_df():
         use_pyarrow=True,
     ).with_columns(
         pl.col("tconst").str.replace("tt", "").cast(pl.Int64()),
-    ).filter(pl.col("numVotes") > 1000
+    ).filter(pl.col("numVotes") > 5000
     ).rename({"tconst": "id", "averageRating": "imdb_rating"}
     ).drop(["numVotes"])
 
