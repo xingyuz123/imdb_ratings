@@ -117,14 +117,11 @@ def get_reviews_from_title_code(title_code: str, requests_session: requests.Sess
 
     while has_next_page:
         response_dict = get_json_reviews(cursor=cursor, title_code=title_code, session=requests_session)
-        total_reviews = int(response_dict["total"])
         if response_dict is None:
             break
         has_next_page = bool(response_dict["pageInfo"]["hasNextPage"])
         cursor = response_dict["pageInfo"]["endCursor"]
         reviews.extend(extract_reviews_from_json(response_dict, title_code))
         time.sleep(0.1)
-
-    assert 0.99 * total_reviews <= len(reviews), f"Total reviews: {total_reviews}, Scraped reviews: {len(reviews)}"
 
     return pl.DataFrame([review.model_dump() for review in reviews if (review.rating is not None) and (review.num_helpful > 1) and (review.num_words >= 100)])

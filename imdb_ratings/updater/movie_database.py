@@ -22,7 +22,7 @@ def download_title_df() -> pl.DataFrame:
         "https://datasets.imdbws.com/title.basics.tsv.gz",
         separator="\t",
         quote_char=None,
-        columns=["tconst", "titleType", "primaryTitle", "isAdult", "startYear", "endYear", "runtimeMinutes"],
+        columns=["tconst", "titleType", "primaryTitle", "isAdult", "startYear", "endYear", "runtimeMinutes", "genres"],
         null_values=["\\N"],
         use_pyarrow=True,
     ).filter((pl.col("titleType").is_in(["movie", "tvSeries", "tvMiniSeries"])) & 
@@ -34,7 +34,8 @@ def download_title_df() -> pl.DataFrame:
         pl.col("tconst").str.replace("tt", "").cast(pl.Int64()),
         pl.col("titleType").eq("movie"),
         pl.col("startYear").cast(pl.Int16()),
-        pl.col("endYear").cast(pl.Int16())
+        pl.col("endYear").cast(pl.Int16()),
+        pl.col("genres").str.split(",")
     ).rename({"tconst": "id", "titleType": "isMovie"})
 
     logger.info("Fetching ratings data")
