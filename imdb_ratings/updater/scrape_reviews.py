@@ -122,6 +122,6 @@ def get_reviews_from_title_code(title_code: str, requests_session: requests.Sess
         has_next_page = bool(response_dict["pageInfo"]["hasNextPage"])
         cursor = response_dict["pageInfo"]["endCursor"]
         reviews.extend(extract_reviews_from_json(response_dict, title_code))
-        time.sleep(0.1)
+        time.sleep(1)
 
     return pl.DataFrame([review.model_dump() for review in reviews if (review.rating is not None) and (review.num_helpful > 1) and (review.num_words >= 100)])

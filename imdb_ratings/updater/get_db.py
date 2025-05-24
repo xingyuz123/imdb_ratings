@@ -15,6 +15,7 @@ def get_weighted_ratings_df(supabase_client: Client) -> pl.DataFrame:
             "id": pl.Int64,
             "isMovie": pl.Boolean,
             "primaryTitle": pl.String,
+            "genres": pl.List(pl.String),
             "startYear": pl.Int16,
             "endYear": pl.Int16,
             "num_votes": pl.Int32,
