@@ -80,7 +80,7 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
     querystring = {
         "operationName": "TitleReviewsRefine",
         "variables": f"{{\"after\":\"{cursor}\",\"const\":\"{title_code}\",\"filter\":{{}},\"first\":50,\"locale\":\"en-US\",\"sort\":{{\"by\":\"HELPFULNESS_SCORE\",\"order\":\"DESC\"}}}}",
-        "extensions": "{\"persistedQuery\":{\"sha256Hash\":\"89aff4cd7503e060ff1dd5aba91885d8bac0f7a21aa1e1f781848a786a5bdc19\",\"version\":1}}"
+        "extensions": "{\"persistedQuery\":{\"sha256Hash\":\"8e851a269025170d18a33b296a5ced533529abb4e7bc3d6b96d1f36636e7f685\",\"version\":1}}"
     }
 
     response = session.request("GET", url, headers=headers, params=querystring, timeout=10)

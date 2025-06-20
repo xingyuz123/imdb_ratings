@@ -173,7 +173,8 @@ class IMDBDataProcessor:
             df
             # Convert ID and apply vote threshold
             .with_columns(
-                pl.col("tconst").str.replace("tt", "").cast(pl.Int64)
+                pl.col("tconst").str.replace("tt", "").cast(pl.Int64),
+                pl.col("averageRating").mul(10).cast(pl.Int64)
             )
             .filter(pl.col("numVotes") >= self.config.MIN_VOTES)
             .rename({

@@ -53,7 +53,7 @@ def update_title_table(supabase_client: Client | None = None) -> None:
 
 def extract_title_ids(table_name: TableName, supabase_client: Client) -> set[int]:
     id_name: str = "id" if table_name == TableName.TITLES else "title_id"
-    table_name_str: str = "distinct_title_id_from_review" if table_name == TableName.REVIEWS else "distinct_title_id"
+    table_name_str: str = "reviews" if table_name == TableName.REVIEWS else "titles"
     offset: int = 0
     title_ids: set[int] = set()
     
