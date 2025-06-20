@@ -1,13 +1,13 @@
 from imdb_ratings.updater.movie_database import download_title_df
 from imdb_ratings.updater.scrape_reviews import create_requests_session, get_reviews_from_title_code
-import polars as pl
 from supabase import Client, create_client
-import time
 from enum import Enum
-import os
 from imdb_ratings import logger
 from dotenv import load_dotenv
 from typing import Any
+import os
+import time
+import polars as pl
 
 load_dotenv()
 
