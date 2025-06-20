@@ -147,3 +147,7 @@
 2025-06-20 23:49:00 - INFO - update_supabase - update_reviews_table - Extracting reviews for 3/11107 titles: tt0010323
 2025-06-20 23:51:20 - INFO - update_supabase - update_reviews_table - Extracting reviews for 1/11107 titles: tt0004972
 2025-06-20 23:51:33 - INFO - update_supabase - update_reviews_table - Extracting reviews for 2/11107 titles: tt0006864
+2025-06-20 23:58:14 - INFO - update_supabase - update_reviews_table - Extracting reviews for 1/11107 titles: tt0004972
+2025-06-20 23:58:27 - INFO - update_supabase - update_reviews_table - Extracting reviews for 2/11107 titles: tt0006864
+2025-06-20 23:59:55 - INFO - update_supabase - update_reviews_table - Extracting reviews for 1/11107 titles: tt0004972
+2025-06-21 00:00:10 - INFO - update_supabase - update_reviews_table - Extracting reviews for 2/11107 titles: tt0006864

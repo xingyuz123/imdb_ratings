@@ -57,25 +57,12 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
     url = "https://caching.graphql.imdb.com/"
     headers = {
         "accept": "application/graphql+json, application/json",
-        "accept-language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
         "content-type": "application/json",
-        "cookie": "session-id=143-2228010-5905528; session-id-time=2082787201l; ubid-main=133-7651439-3657636; ad-oo=0; uu=eyJpZCI6InV1ZmRhMmQ2YzI4ZjdkNDE4OTlhNWUiLCJwcmVmZXJlbmNlcyI6eyJmaW5kX2luY2x1ZGVfYWR1bHQiOmZhbHNlfX0=; ci=e30; session-token=WQDRWHnhpc7sMaaAye5CgjVKZZ0uIyW6PRPnqEXghsJKDSHKKVurY9I/3DFlWSxGmlch5wS/O8M+/jHtfsmlxIfbscvVRwdCJP2d2RY3U2JRrsWI05VR2XETdbN9AIX6wMgp95eoAlDsaU9MLsXpdgjOFLIP3oOnx7b2nTd0W1/SCIBbG8bAIQEt5uyGL8YSIZgWZJ+YC0O7UdGelevrRLrsNu/XmteGDULwbYGR9DAEglqPeIuQ30vc4N1l3nyJj8zJ+J5hVUMmeJgcxxRtNtESF7kPUENLXmFnQCpTHUK4SsYx++Rg52Zwkinarw/BwmE3vzsyo73IJJdOiKNyE+fv/mXq6/Cq",
-        "origin": "https://www.imdb.com",
-        "priority": "u=1, i",
-        "referer": "https://www.imdb.com/",
-        "sec-ch-ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"macOS"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        "x-amzn-sessionid": "143-2228010-5905528",
         "x-imdb-client-name": "imdb-web-next-localized",
         "x-imdb-client-rid": "T2VXW4Z3H4Q856A770FW",
         "x-imdb-user-country": "US",
         "x-imdb-user-language": "en-US",
-        "x-imdb-weblab-treatment-overrides": '{"IMDB_SDUI_FAQS_989503":"T1"}'
     }
     querystring = {
         "operationName": "TitleReviewsRefine",
