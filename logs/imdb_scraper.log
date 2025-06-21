@@ -151,3 +151,58 @@
 2025-06-20 23:58:27 - INFO - update_supabase - update_reviews_table - Extracting reviews for 2/11107 titles: tt0006864
 2025-06-20 23:59:55 - INFO - update_supabase - update_reviews_table - Extracting reviews for 1/11107 titles: tt0004972
 2025-06-21 00:00:10 - INFO - update_supabase - update_reviews_table - Extracting reviews for 2/11107 titles: tt0006864
+2025-06-21 12:58:48 - INFO - main_update - main - Starting IMDB ratings update process
+2025-06-21 12:58:48 - INFO - main_update - main - Step 1: Updating titles table
+2025-06-21 12:58:48 - INFO - update_supabase - update_title_table - Starting title table update
+2025-06-21 12:58:48 - INFO - movie_database - download_title_df - Starting IMDB data download and processing
+2025-06-21 12:58:48 - INFO - movie_database - _download_basics_data - Fetching basic title data from IMDB
+2025-06-21 12:59:00 - INFO - movie_database - _process_basics_data - Processing basic title data
+2025-06-21 12:59:00 - INFO - movie_database - _download_ratings_data - Fetching ratings data from https://datasets.imdbws.com/title.ratings.tsv.gz
+2025-06-21 12:59:02 - INFO - movie_database - _process_ratings_data - Processing ratings data (min votes: 15,000)
+2025-06-21 12:59:02 - INFO - movie_database - _join_title_and_ratings - Joining title and ratings data
+2025-06-21 12:59:02 - INFO - movie_database - download_title_df - Successfully processed 11,108 titles
+2025-06-21 12:59:04 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 1/12
+2025-06-21 12:59:07 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 2/12
+2025-06-21 12:59:09 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 3/12
+2025-06-21 12:59:11 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 4/12
+2025-06-21 12:59:12 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 5/12
+2025-06-21 12:59:15 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 6/12
+2025-06-21 12:59:18 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 7/12
+2025-06-21 12:59:20 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 8/12
+2025-06-21 12:59:22 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 9/12
+2025-06-21 12:59:23 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 10/12
+2025-06-21 12:59:25 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 11/12
+2025-06-21 12:59:27 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 12/12
+2025-06-21 12:59:28 - INFO - update_supabase - update_title_table - Title table update completed successfully
+2025-06-21 12:59:28 - INFO - main_update - main - Step 2: Skipping reviews update
+2025-06-21 12:59:28 - INFO - main_update - main - Step 3: Skipping Excel export
+2025-06-21 12:59:28 - INFO - main_update - main - Update process completed successfully
+2025-06-21 13:00:11 - INFO - main_update - main - Starting IMDB ratings update process
+2025-06-21 13:00:11 - INFO - main_update - main - Step 1: Skipping titles update
+2025-06-21 13:00:11 - INFO - main_update - main - Step 2: Updating reviews table
+2025-06-21 13:00:11 - INFO - update_supabase - update_reviews_table - Starting reviews table update
+2025-06-21 13:00:11 - INFO - update_supabase - extract_title_ids - Extracting title IDs from titles
+2025-06-21 13:00:14 - INFO - update_supabase - extract_title_ids - Extracting title IDs from reviews
+2025-06-21 13:00:15 - INFO - update_supabase - update_reviews_table - Found 11108 titles to process
+2025-06-21 13:00:15 - INFO - update_supabase - update_reviews_table - Processing reviews for 1/11108 titles: tt0004972
+2025-06-21 13:00:15 - DEBUG - scrape_reviews - get_reviews_from_title_code - Starting review extraction for tt0004972
+2025-06-21 13:00:16 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 49 reviews so far for tt0004972
+2025-06-21 13:00:20 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 98 reviews so far for tt0004972
+2025-06-21 13:00:23 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 148 reviews so far for tt0004972
+2025-06-21 13:00:26 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 195 reviews so far for tt0004972
+2025-06-21 13:00:27 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 245 reviews so far for tt0004972
+2025-06-21 13:00:30 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 295 reviews so far for tt0004972
+2025-06-21 13:00:32 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 342 reviews so far for tt0004972
+2025-06-21 13:00:35 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 380 reviews so far for tt0004972
+2025-06-21 13:00:37 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 421 reviews so far for tt0004972
+2025-06-21 13:00:39 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 424 reviews so far for tt0004972
+2025-06-21 13:00:40 - INFO - scrape_reviews - get_reviews_from_title_code - Extracted 192/424 reviews for tt0004972 after filtering
+2025-06-21 13:00:40 - INFO - update_supabase - upsert_rows_into_table - Successfully inserted batch 1/1
+2025-06-21 13:00:41 - INFO - update_supabase - update_reviews_table - Inserted 192 reviews for tt0004972
+2025-06-21 13:00:41 - INFO - update_supabase - update_reviews_table - Processing reviews for 2/11108 titles: tt0006864
+2025-06-21 13:00:41 - DEBUG - scrape_reviews - get_reviews_from_title_code - Starting review extraction for tt0006864
+2025-06-21 13:00:42 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 50 reviews so far for tt0006864
+2025-06-21 13:00:44 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 100 reviews so far for tt0006864
+2025-06-21 13:00:46 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 142 reviews so far for tt0006864
+2025-06-21 13:00:48 - DEBUG - scrape_reviews - get_reviews_from_title_code - Fetched 144 reviews so far for tt0006864
+2025-06-21 13:00:49 - INFO - scrape_reviews - get_reviews_from_title_code - Extracted 70/144 reviews for tt0006864 after filtering

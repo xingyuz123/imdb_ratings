@@ -25,13 +25,6 @@ class IMDBDataConfig(BaseModel):
     # Data processing
     null_value: str = "\\N"
     genre_separator: str = ","
-    
-    @field_validator('min_votes')
-    def validate_min_votes(cls, v):
-        if v < 0:
-            raise ValueError("min_votes must be non-negative")
-        return v
-    
 
 class SupabaseConfig(BaseModel):
     """Configuration for Supabase connection."""
@@ -46,12 +39,6 @@ class SupabaseConfig(BaseModel):
     
     # Batch processing
     batch_size: int = Field(default=1000, ge=1, le=10000)
-    
-    @field_validator('project_url')
-    def validate_url(cls, v):
-        if not v.startswith('https://'):
-            raise ValueError("Supabase URL must start with https://")
-        return v
 
 
 class ScrapingConfig(BaseModel):
@@ -75,7 +62,7 @@ class ScrapingConfig(BaseModel):
     
     # User agent (should be configurable, not hardcoded)
     user_agent: str = Field(
-        default="Mozilla/5.0 (compatible; IMDBScraper/1.0)"
+        default="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     )
 
 class LoggingConfig(BaseModel):
