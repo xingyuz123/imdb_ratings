@@ -49,7 +49,7 @@ class IMDBDataProcessor:
     
     def _download_basics_data(self) -> pl.DataFrame:
         """Download raw title basics data from IMDB."""
-        logger.info("Fetching basic title data from IMDB")
+        logger.info(f"Fetching basic title data from {self.config.basics_url}")
 
         columns = [
             "tconst", "titleType", "primaryTitle", "isAdult", 
@@ -149,7 +149,7 @@ class IMDBDataProcessor:
         return basics_df.join(ratings_df, on="id", how="inner")
 
 
-def download_title_df() -> pl.DataFrame:
+def download_titles_from_imdb() -> pl.DataFrame:
     """
     Convenience function to download IMDB title data using default configuration.
     
