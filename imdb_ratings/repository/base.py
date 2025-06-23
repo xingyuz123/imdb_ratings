@@ -3,14 +3,12 @@ Base repository class for database operations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Any
+from typing import Any
 from supabase import Client
 from imdb_ratings import logger
 from imdb_ratings.config import get_settings
 
-T = TypeVar("T")
-
-class BaseRepository(ABC, Generic[T]):
+class BaseRepository(ABC):
     """Base class for all repositories."""
 
     def __init__(self, supabase_client: Client):
@@ -111,7 +109,6 @@ class BaseRepository(ABC, Generic[T]):
 
         try:
             query.execute()
-            logger.info(f"Successfully updated {self.table_name} table with filters: {filters}")
         except Exception as e:
             logger.error(f"Error updating {self.table_name} table: {str(e)}")
             raise e

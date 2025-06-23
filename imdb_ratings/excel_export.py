@@ -3,9 +3,9 @@ import polars as pl
 import xlsxwriter
 from pathlib import Path
 from imdb_ratings.updater.update_supabase import create_supabase_client
-from imdb_ratings.updater.get_db import get_weighted_ratings_df
 from imdb_ratings.config import get_settings
 from imdb_ratings import logger
+from imdb_ratings.repository import WeightedRatingsRepository
 from supabase import Client
 
 def export_to_excel(file_path: Path | None = None, supabase_client: Client | None = None):
@@ -29,8 +29,11 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
     if supabase_client is None:
         supabase_client = create_supabase_client()
 
+    weighted_ratings_repo = WeightedRatingsRepository(supabase_client)
+    weighted_ratings_df = weighted_ratings_repo.get_all_as_dataframe()
+
     titles_df = (
-        get_weighted_ratings_df(supabase_client)
+        weighted_ratings_df
         .sort('bayesian_rating', descending=True)
         .drop_nulls("bayesian_rating")
         .with_columns(pl.col("bayesian_rating").round(1))
@@ -47,7 +50,7 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
     )
 
     shows_df = (
-        titles_df.filter(pl.col("isMovie") == False)
+        titles_df.filter(~pl.col("isMovie"))
         .drop(["isMovie"])
     )
 
