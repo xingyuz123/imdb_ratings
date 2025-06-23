@@ -71,10 +71,10 @@ def update_reviews_table(supabase_client: Client | None = None, titles_to_update
             try:
                 review_df = get_reviews_from_title_code(title_code, requests_session)
                 if not review_df.is_empty():
-                    review_repo.upsert_reviews(review_df) 
+                    review_repo.upsert_reviews(review_df)
+                    title_repo.mark_titles_updated(title_id)
                 else:
                     logger.debug(f"No reviews found for {title_code}")
-                title_repo.mark_titles_updated(title_id)
             except Exception as e:
                 logger.error(f"Error processing {title_code}: {str(e)}")
                 continue
