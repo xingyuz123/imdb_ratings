@@ -1,17 +1,10 @@
 from imdb_ratings.updater.movie_database import download_titles_from_imdb
 from imdb_ratings.updater.scrape_reviews import create_requests_session, get_reviews_from_title_code
-from imdb_ratings.config import get_settings
-from supabase import Client, create_client
+from supabase import Client
 from imdb_ratings import logger
+from imdb_ratings.database import get_database_client
 from imdb_ratings.repository import TitleRepository, ReviewRepository
-import time
 import polars as pl
-
-def create_supabase_client() -> Client:
-    """Create a Supabase client using configuration."""
-    settings = get_settings()
-    config = settings.supabase
-    return create_client(config.project_url, config.secret_key)
 
 
 def update_title_table(supabase_client: Client | None = None) -> None:
@@ -25,7 +18,7 @@ def update_title_table(supabase_client: Client | None = None) -> None:
     title_df_from_imdb = download_titles_from_imdb()
 
     if supabase_client is None:
-        supabase_client = create_supabase_client()
+        supabase_client = get_database_client()
 
     title_repo = TitleRepository(supabase_client)
     title_df_from_supabase = title_repo.get_all_as_dataframe()
@@ -59,7 +52,7 @@ def update_reviews_table(supabase_client: Client | None = None, titles_to_update
     logger.info("Starting reviews table update")
 
     if supabase_client is None:
-        supabase_client = create_supabase_client()
+        supabase_client = get_database_client()
     
     title_repo = TitleRepository(supabase_client)
     review_repo = ReviewRepository(supabase_client)

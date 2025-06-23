@@ -2,7 +2,7 @@
 import polars as pl
 import xlsxwriter
 from pathlib import Path
-from imdb_ratings.updater.update_supabase import create_supabase_client
+from imdb_ratings.database import get_database_client
 from imdb_ratings.config import get_settings
 from imdb_ratings import logger
 from imdb_ratings.repository import WeightedRatingsRepository
@@ -27,7 +27,7 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
     logger.info(f"Starting Excel export to {file_path}")
 
     if supabase_client is None:
-        supabase_client = create_supabase_client()
+        supabase_client = get_database_client()
 
     weighted_ratings_repo = WeightedRatingsRepository(supabase_client)
     weighted_ratings_df = weighted_ratings_repo.get_all_as_dataframe()

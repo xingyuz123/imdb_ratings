@@ -9,9 +9,15 @@ This script orchestrates the complete update process:
 
 import argparse
 import sys
+import atexit
 from imdb_ratings.updater.update_supabase import update_reviews_table, update_title_table
 from imdb_ratings.excel_export import export_to_excel
+from imdb_ratings.database import close_database_connection
 from imdb_ratings import logger
+
+
+atexit.register(close_database_connection)
+
 
 def main(skip_titles: bool=False, skip_reviews: bool=False, skip_export: bool=False) -> None:
     """
@@ -51,6 +57,8 @@ def main(skip_titles: bool=False, skip_reviews: bool=False, skip_export: bool=Fa
     except Exception as e:
         logger.error(f"Update process failed: {str(e)}", exc_info=True)
         sys.exit(1)
+    finally:
+        close_database_connection()
 
 
 def parse_args():
