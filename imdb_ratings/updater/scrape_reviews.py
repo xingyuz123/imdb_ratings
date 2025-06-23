@@ -140,7 +140,7 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
     except HTTPError as e:
         if e.response.status_code >= 500:
             logger.warning(f"Server error for {title_code}: {e}")
-            raise NetworkError(f"Server error: {e}")
+            return None
         else:
             logger.error(f"Client error for {title_code}: {e}")
             raise NetworkError(f"HTTP error: {e}")
