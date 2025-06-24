@@ -5,7 +5,7 @@ from pathlib import Path
 from imdb_ratings.database import get_database_client
 from imdb_ratings.config import get_settings
 from imdb_ratings import logger
-from imdb_ratings.repository import WeightedRatingsRepository
+from imdb_ratings.repository import WeightedRatingsRepository, TitleRepository
 from supabase import Client
 
 def export_to_excel(file_path: Path | None = None, supabase_client: Client | None = None):
@@ -32,23 +32,33 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
     weighted_ratings_repo = WeightedRatingsRepository(supabase_client)
     weighted_ratings_df = weighted_ratings_repo.get_all_as_dataframe()
 
-    titles_df = (
-        weighted_ratings_df
+    title_repo = TitleRepository(supabase_client)
+    titles_df = title_repo.get_all_as_dataframe()
+
+    combined_df = (
+        titles_df
+        .join(weighted_ratings_df, on="id", how="inner")
         .sort('weighted_rating', descending=True)
         .drop_nulls("weighted_rating")
     )
 
-    logger.info(f"Processing {len(titles_df)} titles for export")
+    logger.info(f"Processing {len(combined_df)} titles for export")
+
+    export_columns = ["id", "primaryTitle", "genres", "startYear", "endYear", "imdb_rating", "isMovie", "weighted_rating"]
 
     movies_df = (
-        titles_df.filter(pl.col("isMovie"))
-        .drop(["isMovie", "endYear"])
+        combined_df
+        .select(export_columns)
+        .filter(pl.col("isMovie"))
+        .drop(["isMovie", "endYear", "id"])
         .rename({"startYear": "year"})
     )
 
     shows_df = (
-        titles_df.filter(~pl.col("isMovie"))
-        .drop(["isMovie"])
+        combined_df
+        .select(export_columns)
+        .filter(~pl.col("isMovie"))
+        .drop(["isMovie", "id"])
     )
 
     logger.info(f"Exporting {len(movies_df)} movies and {len(shows_df)} shows")
