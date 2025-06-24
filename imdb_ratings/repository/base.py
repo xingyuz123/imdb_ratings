@@ -22,8 +22,6 @@ class BaseRepository(ABC):
         self.client = supabase_client
         self.settings = get_settings()
         self.config = self.settings.supabase
-        self._retry_count = 3
-        self._retry_delay = 1.0
 
     @property 
     @abstractmethod

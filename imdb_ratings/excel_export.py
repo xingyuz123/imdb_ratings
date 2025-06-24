@@ -34,11 +34,8 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
 
     titles_df = (
         weighted_ratings_df
-        .sort('bayesian_rating', descending=True)
-        .drop_nulls("bayesian_rating")
-        .with_columns(pl.col("bayesian_rating").round(1))
-        .drop(["weighted_rating", "total_weight"])
-        .rename({"bayesian_rating": "weighted_rating"})
+        .sort('weighted_rating', descending=True)
+        .drop_nulls("weighted_rating")
     )
 
     logger.info(f"Processing {len(titles_df)} titles for export")
