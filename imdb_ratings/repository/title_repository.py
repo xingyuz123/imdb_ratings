@@ -37,7 +37,24 @@ class TitleRepository(BaseRepository):
             return []
         
         return (
-            df.filter(pl.col("needsUpdate"))
+            df.filter(pl.col("needsUpdate") & pl.col("firstWorld"))
+            .select("id")
+            .to_series()
+            .to_list()
+        )
+    
+    def get_titles_needing_first_world_update(self) -> list[int]:
+        """
+        Get IDs of titles that need firstWorld updates.
+        """
+        data = self.fetch_all(columns="id, firstWorld")
+        df = pl.DataFrame(data, infer_schema_length=None)
+
+        if df.is_empty():
+            return []
+        
+        return sorted(
+            df.filter(pl.col("firstWorld").is_null())
             .select("id")
             .to_series()
             .to_list()

@@ -3,6 +3,7 @@ from imdb_ratings.updater.scrape_reviews import create_requests_session, get_rev
 from supabase import Client
 from imdb_ratings import logger
 from imdb_ratings.database import get_database_client
+from imdb_ratings.updater.update_first_world import update_first_world_status
 from imdb_ratings.repository import TitleRepository, ReviewRepository
 import polars as pl
 
@@ -37,8 +38,11 @@ def update_title_table(supabase_client: Client | None = None) -> None:
     titles_to_update = titles_to_update.with_columns(
         pl.lit(True).alias("needsUpdate")
     )
-
+    
     title_repo.upsert_titles(titles_to_update)
+
+    update_first_world_status(title_repo)
+
     logger.info("Title table update completed successfully")
 
 def update_reviews_table(supabase_client: Client | None = None, titles_to_update: list[int] | None = None) -> None:
