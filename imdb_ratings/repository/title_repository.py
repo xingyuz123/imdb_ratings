@@ -30,7 +30,7 @@ class TitleRepository(BaseRepository):
             List of title IDs marked as needing update.
         """
         # Supabase columns argument is a string of comma-separated column names
-        data = self.fetch_all(columns="id, needsUpdate")
+        data = self.fetch_all(columns="id, needsUpdate, firstWorld")
         df = pl.DataFrame(data, infer_schema_length=None)
 
         if df.is_empty():
