@@ -9,8 +9,9 @@ from typing import Self, Any
 from threading import Lock
 from supabase import Client, create_client
 from imdb_ratings import logger
-from imdb_ratings.config import get_settings
-from imdb_ratings.exceptions import DatabaseConnectionError, ConfigurationError
+from imdb_ratings.core.config import get_settings
+from imdb_ratings.core.constants import DB_MAX_RETRIES, DB_RETRY_DELAY
+from imdb_ratings.core.exceptions import DatabaseConnectionError, ConfigurationError
 import time
 
 class DatabaseConnectionManager:
@@ -25,8 +26,8 @@ class DatabaseConnectionManager:
     _instance: Self | None = None
     _lock: Lock = Lock()
     _client: Client | None = None
-    _max_retries: int = 3
-    _retry_delay: float = 1.0
+    _max_retries: int = DB_MAX_RETRIES
+    _retry_delay: float = DB_RETRY_DELAY
 
     def __new__(cls) -> Self:
         """Ensure only one instance of the connection manager exists."""
@@ -87,11 +88,12 @@ class DatabaseConnectionManager:
         for attempt in range(self._max_retries):
             try:
                 logger.info(f"Creating Supabase client (attempt {attempt + 1}/{self._max_retries})")
+                
                 client = create_client(
                     self._settings.supabase.project_url,
                     self._settings.supabase.secret_key
                 )
-                
+
                 # Test the connection
                 self._test_connection(client)
                 

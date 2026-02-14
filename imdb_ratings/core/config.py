@@ -87,6 +87,9 @@ class Settings(BaseSettings):
     # Supabase settings (from environment)
     project_url: str = Field(..., alias="PROJECT_URL")
     secret_key: str = Field(..., alias="SECRET_KEY")
+
+    # OMDB API
+    omdb_api_key: str = Field(..., alias="OMDB_API")
     
     # Sub-configurations
     imdb: IMDBDataConfig = Field(default_factory=IMDBDataConfig)

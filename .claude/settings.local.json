@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(poetry run python3:*)",
+      "Bash(poetry env info:*)",
+      "Bash(poetry env list:*)",
+      "Bash(/Users/xingyuzhang/Library/Caches/pypoetry/virtualenvs/imdb-ratings-1gaDbQ5W-py3.12/bin/python:*)",
+      "Bash(poetry run:*)",
+      "Bash(poetry env use:*)",
+      "Bash(nslookup:*)",
+      "Bash(python3:*)",
+      "Bash(python -c:*)",
+      "Bash(PYTHON=/Users/xingyuzhang/Library/Caches/pypoetry/virtualenvs/imdb-ratings-1gaDbQ5W-py3.12/bin/python:*)",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.sources.imdb_dataset import download_titles_from_imdb; print\\(''sources.imdb_dataset OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.sources.scrape_reviews import create_requests_session; print\\(''sources.scrape_reviews OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.sources.omdb_client import OMDBClient; print\\(''sources.omdb_client OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.update_titles import update_title_table; print\\(''update_titles OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.update_reviews import update_reviews_table; print\\(''update_reviews OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.update_first_world import update_first_world_status; print\\(''update_first_world OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.export_excel import export_to_excel; print\\(''export_excel OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater.first_world import determine_first_world_status; print\\(''first_world OK''\\)\")",
+      "Bash($PYTHON -c \"from imdb_ratings.updater import main; print\\(''updater __init__ OK''\\)\")",
+      "Bash(git mv:*)"
+    ]
+  }
+}

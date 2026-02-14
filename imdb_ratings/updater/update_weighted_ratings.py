@@ -3,8 +3,8 @@ Module to handle weighted ratings table updates.
 """
 
 from imdb_ratings import logger
-from imdb_ratings.database import get_database_client
-from imdb_ratings.exceptions import DatabaseOperationError
+from imdb_ratings.core.database import get_database_client
+from imdb_ratings.core.exceptions import DatabaseOperationError
 from supabase import Client
 
 def update_weighted_ratings_table(supabase_client: Client | None = None):

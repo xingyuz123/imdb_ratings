@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 from supabase import Client
 from imdb_ratings import logger
-from imdb_ratings.config import get_settings
-from imdb_ratings.exceptions import DatabaseOperationError
+from imdb_ratings.core.config import get_settings
+from imdb_ratings.core.exceptions import DatabaseOperationError
 
 class BaseRepository(ABC):
     """Base class for all repositories."""

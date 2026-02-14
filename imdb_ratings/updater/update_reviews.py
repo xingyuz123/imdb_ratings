@@ -1,54 +1,19 @@
-from imdb_ratings.updater.movie_database import download_titles_from_imdb
-from imdb_ratings.updater.scrape_reviews import create_requests_session, get_reviews_from_title_code
+"""
+Pipeline Step 3: Scrape and update reviews for titles needing updates.
+"""
+
+from imdb_ratings.updater.sources.scrape_reviews import create_requests_session, get_reviews_from_title_code
+from imdb_ratings.utils import format_imdb_id
 from supabase import Client
 from imdb_ratings import logger
-from imdb_ratings.database import get_database_client
-from imdb_ratings.updater.update_first_world import update_first_world_status
+from imdb_ratings.core.database import get_database_client
 from imdb_ratings.repository import TitleRepository, ReviewRepository
-import polars as pl
 
-
-def update_title_table(supabase_client: Client | None = None) -> None:
-    """
-    Update the title table with the latest data from IMDB.
-    
-    Args:
-        supabase_client: Existing Supabase client or None to create a new one
-    """
-    logger.info("Starting title table update")
-    title_df_from_imdb = download_titles_from_imdb()
-
-    if supabase_client is None:
-        supabase_client = get_database_client()
-
-    title_repo = TitleRepository(supabase_client)
-    title_df_from_supabase = title_repo.get_all_as_dataframe()
-    titles_to_update = title_df_from_imdb
-
-    if len(title_df_from_supabase) > 0:
-        titles_to_update = title_df_from_imdb.join(
-            title_df_from_supabase.select(["id", "num_votes"]).rename({"num_votes": "num_votes_supabase"}),
-            on="id",
-            how="left"
-        ).filter(
-            (pl.col("num_votes_supabase").is_null()) |  # ID absent from Supabase
-            (pl.col("num_votes") >= pl.col("num_votes_supabase") * 1.05)  # At least 5% more votes
-        ).select(title_df_from_imdb.columns)
-
-    titles_to_update = titles_to_update.with_columns(
-        pl.lit(True).alias("needsUpdate")
-    )
-    
-    title_repo.upsert_titles(titles_to_update)
-
-    update_first_world_status(title_repo)
-
-    logger.info("Title table update completed successfully")
 
 def update_reviews_table(supabase_client: Client | None = None, titles_to_update: list[int] | None = None) -> None:
     """
-    Updates reviews table.
-    
+    Updates reviews table by scraping IMDB for review data.
+
     Args:
         supabase_client: Existing Supabase client or None to create a new one
         titles_to_update: List of title IDs to update, or None to update all missing ones
@@ -57,7 +22,7 @@ def update_reviews_table(supabase_client: Client | None = None, titles_to_update
 
     if supabase_client is None:
         supabase_client = get_database_client()
-    
+
     title_repo = TitleRepository(supabase_client)
     review_repo = ReviewRepository(supabase_client)
 
@@ -69,7 +34,7 @@ def update_reviews_table(supabase_client: Client | None = None, titles_to_update
 
     try:
         for i, title_id in enumerate(titles_to_update):
-            title_code = f"tt{title_id:07d}"
+            title_code = format_imdb_id(title_id)
             logger.info(f"Processing reviews for {i+1}/{len(titles_to_update)} titles: {title_code}")
 
             try:

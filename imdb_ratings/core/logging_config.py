@@ -1,7 +1,13 @@
 import logging
 from pathlib import Path
 
-from imdb_ratings.config import get_settings
+from imdb_ratings.core.config import get_settings
+from imdb_ratings.core.constants import (
+    LOGGER_NAME,
+    LOG_FORMAT_DETAILED,
+    LOG_FORMAT_CONSOLE,
+    LOG_DATE_FORMAT,
+)
 
 def setup_logging(
     log_file: Path | None = None,
@@ -31,7 +37,7 @@ def setup_logging(
     if file_level is None:
         file_level = getattr(logging, settings.logging.file_level)
 
-    logger = logging.getLogger("imdb_scraper")
+    logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(logging.DEBUG)
     
     # Prevent adding handlers multiple times
@@ -39,12 +45,10 @@ def setup_logging(
         return logger
         
     detailed_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(module)s - %(funcName)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        LOG_FORMAT_DETAILED, datefmt=LOG_DATE_FORMAT
     )
     console_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        LOG_FORMAT_CONSOLE, datefmt=LOG_DATE_FORMAT
     )
     
     # Console handler

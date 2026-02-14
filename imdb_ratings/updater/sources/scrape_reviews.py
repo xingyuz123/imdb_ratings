@@ -4,8 +4,24 @@ from requests.exceptions import HTTPError, RequestException, Timeout, Connection
 from urllib3.util.retry import Retry
 from pydantic import BaseModel
 from imdb_ratings import logger
-from imdb_ratings.config import get_settings
-from imdb_ratings.exceptions import RateLimitError, DataValidationError, NetworkError
+from imdb_ratings.core.config import get_settings
+from imdb_ratings.core.constants import (
+    IMDB_GRAPHQL_HEADERS,
+    IMDB_GRAPHQL_OPERATION_NAME,
+    IMDB_GRAPHQL_PERSISTED_QUERY_HASH,
+    IMDB_GRAPHQL_PAGE_SIZE,
+    IMDB_GRAPHQL_LOCALE,
+    IMDB_GRAPHQL_SORT_BY,
+    IMDB_GRAPHQL_SORT_ORDER,
+    IMDB_REVIEW_ID_PREFIX,
+    IMDB_TITLE_ID_PREFIX,
+    HTTP_STATUS_RATE_LIMITED,
+    SCRAPER_MAX_RETRIES,
+    SCRAPER_MAX_CONSECUTIVE_FAILURES,
+    RATE_LIMIT_BASE_WAIT_SECONDS,
+    RATE_LIMIT_MAX_WAIT_SECONDS,
+)
+from imdb_ratings.core.exceptions import RateLimitError, DataValidationError, NetworkError
 import polars as pl
 from typing import TypedDict
 import time
@@ -83,15 +99,13 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
         "accept": "application/graphql+json, application/json",
         "content-type": "application/json",
         "user-agent": config.user_agent,
-        "x-imdb-client-name": "imdb-web-next-localized",
-        "x-imdb-client-rid": "T2VXW4Z3H4Q856A770FW",
-        "x-imdb-user-country": "US",
-        "x-imdb-user-language": "en-US",
+        **IMDB_GRAPHQL_HEADERS,
     }
+    sort_config = f'{{"by":"{IMDB_GRAPHQL_SORT_BY}","order":"{IMDB_GRAPHQL_SORT_ORDER}"}}'
     querystring = {
-        "operationName": "TitleReviewsRefine",
-        "variables": f"{{\"after\":\"{cursor}\",\"const\":\"{title_code}\",\"filter\":{{}},\"first\":50,\"locale\":\"en-US\",\"sort\":{{\"by\":\"HELPFULNESS_SCORE\",\"order\":\"DESC\"}}}}",
-        "extensions": "{\"persistedQuery\":{\"sha256Hash\":\"8e851a269025170d18a33b296a5ced533529abb4e7bc3d6b96d1f36636e7f685\",\"version\":1}}"
+        "operationName": IMDB_GRAPHQL_OPERATION_NAME,
+        "variables": f'{{"after":"{cursor}","const":"{title_code}","filter":{{}},"first":{IMDB_GRAPHQL_PAGE_SIZE},"locale":"{IMDB_GRAPHQL_LOCALE}","sort":{sort_config}}}',
+        "extensions": f'{{"persistedQuery":{{"sha256Hash":"{IMDB_GRAPHQL_PERSISTED_QUERY_HASH}","version":1}}}}'
     }
 
     try:
@@ -102,8 +116,8 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
             timeout=config.request_timeout
         )
 
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After", "60")
+        if response.status_code == HTTP_STATUS_RATE_LIMITED:
+            retry_after = response.headers.get("Retry-After", str(RATE_LIMIT_BASE_WAIT_SECONDS))
             logger.warning(f"Rate limit for {title_code} exceeded. Retry after {retry_after} seconds")
             raise RateLimitError(f"Rate limited. Retry after {retry_after} seconds")
 
@@ -173,14 +187,14 @@ def extract_reviews_from_json(response_dict: ReviewsData, title_code: str) -> li
             word_count = len(review_text.split()) if review_text else 0
 
             review_id_str = node.get("id", "")
-            if not review_id_str.startswith("rw"):
+            if not review_id_str.startswith(IMDB_REVIEW_ID_PREFIX):
                 logger.debug(f"Invalid review ID format: {review_id_str}")
                 errors_count += 1
                 continue
 
             try:
-                review_id = int(review_id_str[2:])
-                title_id = int(title_code[2:])
+                review_id = int(review_id_str[len(IMDB_REVIEW_ID_PREFIX):])
+                title_id = int(title_code[len(IMDB_TITLE_ID_PREFIX):])
             except ValueError:
                 logger.debug(f"Cannot parse IDs: review={review_id_str}, title={title_code}")
                 errors_count += 1
@@ -208,7 +222,7 @@ def extract_reviews_from_json(response_dict: ReviewsData, title_code: str) -> li
 def get_reviews_from_title_code(
     title_code: str, 
     requests_session: requests.Session,
-    max_retries: int=3
+    max_retries: int = SCRAPER_MAX_RETRIES
     ) -> pl.DataFrame:
     """
     Extract all reviews for a given title.
@@ -230,7 +244,7 @@ def get_reviews_from_title_code(
     cursor: str = ""
     reviews: list[ReviewData] = []
     consecutive_failures = 0
-    max_consecutive_failures = 3
+    max_consecutive_failures = SCRAPER_MAX_CONSECUTIVE_FAILURES
 
     logger.debug(f"Starting review extraction for {title_code}")
 
@@ -267,7 +281,7 @@ def get_reviews_from_title_code(
             except RateLimitError:
                 retry_count += 1
                 if retry_count < max_retries:
-                    wait_time = min(60 * retry_count, 300)
+                    wait_time = min(RATE_LIMIT_BASE_WAIT_SECONDS * retry_count, RATE_LIMIT_MAX_WAIT_SECONDS)
                     logger.info(f"Rate limited. Waiting {wait_time} seconds before retry {retry_count}/{max_retries}")
                     time.sleep(wait_time)
                 else:

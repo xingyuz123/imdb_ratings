@@ -1,9 +1,12 @@
+"""
+Pipeline Step 5: Export ratings data to Excel.
+"""
 
 import polars as pl
 import xlsxwriter
 from pathlib import Path
-from imdb_ratings.database import get_database_client
-from imdb_ratings.config import get_settings
+from imdb_ratings.core.database import get_database_client
+from imdb_ratings.core.config import get_settings
 from imdb_ratings import logger
 from imdb_ratings.repository import WeightedRatingsRepository, TitleRepository
 from supabase import Client
@@ -11,7 +14,7 @@ from supabase import Client
 def export_to_excel(file_path: Path | None = None, supabase_client: Client | None = None):
     """
     Export IMDB ratings data to Excel file.
-    
+
     Args:
         file_path: Output file path (uses config default if None)
         supabase_client: Supabase client (creates new if None)
