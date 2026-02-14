@@ -5,7 +5,7 @@ Pipeline Step 1: Update titles table with latest data from IMDB.
 from imdb_ratings.updater.sources.imdb_dataset import download_titles_from_imdb
 from supabase import Client
 from imdb_ratings import logger
-from imdb_ratings.core.constants import MIN_START_YEAR, VOTE_INCREASE_THRESHOLD
+from imdb_ratings.core.constants import VOTE_INCREASE_THRESHOLD
 from imdb_ratings.core.database import get_database_client
 from imdb_ratings.repository import TitleRepository
 import polars as pl
@@ -29,9 +29,7 @@ def update_title_table(supabase_client: Client | None = None) -> None:
 
     title_repo = TitleRepository(supabase_client)
     title_df_from_supabase = title_repo.get_all_as_dataframe()
-    titles_to_update = title_df_from_imdb.filter(
-        pl.col("startYear") >= MIN_START_YEAR
-    )
+    titles_to_update = title_df_from_imdb
 
     if len(title_df_from_supabase) > 0:
         titles_to_update = titles_to_update.join(

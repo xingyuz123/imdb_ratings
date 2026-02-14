@@ -98,19 +98,16 @@ def get_json_reviews(cursor: str, title_code: str, session: requests.Session) ->
     headers = {
         "accept": "application/graphql+json, application/json",
         "content-type": "application/json",
-        "user-agent": config.user_agent,
-        **IMDB_GRAPHQL_HEADERS,
     }
-    sort_config = f'{{"by":"{IMDB_GRAPHQL_SORT_BY}","order":"{IMDB_GRAPHQL_SORT_ORDER}"}}'
     querystring = {
-        "operationName": IMDB_GRAPHQL_OPERATION_NAME,
-        "variables": f'{{"after":"{cursor}","const":"{title_code}","filter":{{}},"first":{IMDB_GRAPHQL_PAGE_SIZE},"locale":"{IMDB_GRAPHQL_LOCALE}","sort":{sort_config}}}',
-        "extensions": f'{{"persistedQuery":{{"sha256Hash":"{IMDB_GRAPHQL_PERSISTED_QUERY_HASH}","version":1}}}}'
+        "operationName":"TitleReviewsRefine",
+        "variables": f'{{"after":"{cursor}","const":"{title_code}","filter":{{}},"first":{IMDB_GRAPHQL_PAGE_SIZE},"locale":"{IMDB_GRAPHQL_LOCALE}","sort":{f'{{"by":"{IMDB_GRAPHQL_SORT_BY}","order":"{IMDB_GRAPHQL_SORT_ORDER}"}}'}}}',
+        "extensions":"{\"persistedQuery\":{\"sha256Hash\":\"fb58a77d474033025bf28e1fe68f9b998111d3df58e08cd8405bd9265b1a9aff\",\"version\":1}}"
     }
 
     try:
         response = session.get(
-            config.graphql_url, 
+            config.graphql_url,
             headers=headers, 
             params=querystring, 
             timeout=config.request_timeout

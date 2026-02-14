@@ -8,7 +8,7 @@ a curated database of movies and TV shows with significant user engagement.
 import polars as pl
 from imdb_ratings import logger
 from imdb_ratings.core.config import get_settings, IMDBDataConfig
-from imdb_ratings.core.constants import IMDB_TITLE_ID_PREFIX, IMDB_RATING_MULTIPLIER
+from imdb_ratings.core.constants import IMDB_TITLE_ID_PREFIX, IMDB_RATING_MULTIPLIER, VALID_GENRES
 
 
 class IMDBDataProcessor:
@@ -96,6 +96,7 @@ class IMDBDataProcessor:
                 pl.col("startYear").cast(pl.Int16),
                 pl.col("endYear").cast(pl.Int16),
                 pl.col("genres").str.split(self.config.genre_separator)
+                    .list.eval(pl.element().filter(pl.element().is_in(VALID_GENRES)))
             ])
             .rename({
                 "tconst": "id",

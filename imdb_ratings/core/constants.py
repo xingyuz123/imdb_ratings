@@ -46,9 +46,7 @@ IMDB_GRAPHQL_HEADERS = {
 }
 
 IMDB_GRAPHQL_OPERATION_NAME = "TitleReviewsRefine"
-IMDB_GRAPHQL_PERSISTED_QUERY_HASH = (
-    "8e851a269025170d18a33b296a5ced533529abb4e7bc3d6b96d1f36636e7f685"
-)
+IMDB_GRAPHQL_PERSISTED_QUERY_HASH = "fb58a77d474033025bf28e1fe68f9b998111d3df58e08cd8405bd9265b1a9aff"
 IMDB_GRAPHQL_PAGE_SIZE = 50
 IMDB_GRAPHQL_LOCALE = "en-US"
 IMDB_GRAPHQL_SORT_BY = "HELPFULNESS_SCORE"
@@ -87,4 +85,37 @@ IMDB_RATING_MULTIPLIER = 10  # converts 0.0-10.0 scale to 0-100 integer scale
 # =============================================================================
 
 VOTE_INCREASE_THRESHOLD = 1.05  # 5% increase triggers update
-MIN_START_YEAR = 1950
+
+# =============================================================================
+# Genre Enum Values
+# =============================================================================
+
+VALID_GENRES = (
+    "Action",
+    "Adventure",
+    "Animation",
+    "Biography",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "Film-Noir",
+    "Game-Show",
+    "History",
+    "Horror",
+    "Music",
+    "Musical",
+    "Mystery",
+    "News",
+    "Reality-TV",
+    "Romance",
+    "Sci-Fi",
+    "Short",
+    "Sport",
+    "Talk-Show",
+    "Thriller",
+    "War",
+    "Western",
+)
