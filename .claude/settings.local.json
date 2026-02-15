@@ -20,7 +20,8 @@
       "Bash($PYTHON -c \"from imdb_ratings.updater.export_excel import export_to_excel; print\\(''export_excel OK''\\)\")",
       "Bash($PYTHON -c \"from imdb_ratings.updater.first_world import determine_first_world_status; print\\(''first_world OK''\\)\")",
       "Bash($PYTHON -c \"from imdb_ratings.updater import main; print\\(''updater __init__ OK''\\)\")",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(git -C /Users/xingyuzhang/Desktop/imdb_ratings log --oneline -20)"
     ]
   }
 }

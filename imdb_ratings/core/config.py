@@ -51,7 +51,7 @@ class ScrapingConfig(BaseModel):
     retry_status_codes: list[int] = [500, 502, 503, 504]
     
     # Rate limiting
-    request_delay: float = Field(default=1.0, ge=0)
+    request_delay: float = Field(default=0.3, ge=0)
     
     # Review filtering
     min_helpful_votes: int = Field(default=1, ge=0)
