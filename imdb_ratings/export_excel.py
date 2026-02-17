@@ -40,6 +40,7 @@ def export_to_excel(file_path: Path | None = None, supabase_client: Client | Non
 
     combined_df = (
         titles_df
+        .filter(pl.col("firstWorld") == True)
         .join(weighted_ratings_df, on="id", how="inner")
         .sort('weighted_rating', descending=True)
         .drop_nulls("weighted_rating")
